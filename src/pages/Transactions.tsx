@@ -39,16 +39,16 @@ export default function Transactions() {
   }
 
   const filteredTransactions = transactions.filter(txn =>
-    txn.eventName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    txn.artistName.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    txn.id.toLowerCase().includes(searchQuery.toLowerCase())
+    txn.eventName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    txn.artistName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    txn.id?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
   // Calculate totals
-  const totalAdvance = transactions.reduce((sum, t) => sum + t.advancePayment, 0);
-  const totalPayment = transactions.reduce((sum, t) => sum + t.totalPayment, 0);
-  const totalReceived = transactions.reduce((sum, t) => sum + t.receivedAmount, 0);
-  const totalPending = transactions.reduce((sum, t) => sum + t.pendingAmount, 0);
+  const totalAdvance = transactions.reduce((sum, t) => sum + t.advancePayment, 0) || 0;
+  const totalPayment = transactions.reduce((sum, t) => sum + t.totalPayment, 0) || 0;
+  const totalReceived = transactions.reduce((sum, t) => sum + t.receivedAmount, 0) || 0;
+  const totalPending = transactions.reduce((sum, t) => sum + t.pendingAmount, 0) || 0;
 
   const columns = [
     {

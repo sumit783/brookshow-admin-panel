@@ -15,11 +15,11 @@ import { useState, useEffect } from "react";
 
 const navItems = [
   { title: "Dashboard", url: "/", icon: LayoutDashboard },
-  { title: "Verify Artists", url: "/verify-artists", icon: UserCheck },
+  { title: "Verify Artists", url: "/artists", icon: UserCheck },
   { title: "Events", url: "/events", icon: Calendar },
   { title: "Transactions", url: "/transactions", icon: Receipt },
   { title: "Bookings", url: "/bookings", icon: Ticket },
-  { title: "Withdrawals", url: "/withdraw-requests", icon: Wallet },
+  { title: "Withdrawals", url: "/withdrawals", icon: Wallet },
 ];
 
 interface AdminSidebarProps {
