@@ -35,17 +35,19 @@ const App = () => (
       <BrowserRouter>
         <Routes>
           <Route path="/login" element={<Login />} />
-          <Route path="/" element={<AdminLayout />}>
-            <Route path="/" element={<Index />} />
-            <Route path="/artists" element={<VerifyArtists />} />
-            <Route path="/artist/:id" element={<ArtistDetails />} />
-            <Route path="/verify-planners/:id" element={<PlannerDetails />} />
-            <Route path="/events" element={<Events />} />
-            <Route path="/events/:id" element={<EventDetails />} />
-            <Route path="/transactions" element={<Transactions />} />
-            <Route path="/bookings" element={<Bookings />} />
-            <Route path="/bookings/:id" element={<BookingDetails />} />
-            <Route path="/withdrawals" element={<WithdrawRequests />} />
+          <Route element={<ProtectedRoute />}>
+            <Route path="/" element={<AdminLayout />}>
+              <Route path="/" element={<Index />} />
+              <Route path="/artists" element={<VerifyArtists />} />
+              <Route path="/artist/:id" element={<ArtistDetails />} />
+              <Route path="/verify-planners/:id" element={<PlannerDetails />} />
+              <Route path="/events" element={<Events />} />
+              <Route path="/events/:id" element={<EventDetails />} />
+              <Route path="/transactions" element={<Transactions />} />
+              <Route path="/bookings" element={<Bookings />} />
+              <Route path="/bookings/:id" element={<BookingDetails />} />
+              <Route path="/withdrawals" element={<WithdrawRequests />} />
+            </Route>
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />
         </Routes>
