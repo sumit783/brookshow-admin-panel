@@ -292,7 +292,7 @@ export default function VerifyArtists() {
                         variant="glass"
                         size="sm"
                         className="w-full text-xs sm:text-sm"
-                        onClick={() => navigate(`/verify-artists/${artist._id}`)}
+                        onClick={() => navigate(`/artist/${artist._id}`)}
                       >
                         <Eye className="w-4 h-4 mr-2" />
                         View Details

@@ -59,10 +59,6 @@ export default function Events() {
             className="pl-10 bg-secondary border-border"
           />
         </div>
-        <Button className="w-full sm:w-auto">
-          <Plus className="w-4 h-4 mr-2" />
-          Add Event
-        </Button>
       </PageHeader>
 
       {/* Events Grid */}
