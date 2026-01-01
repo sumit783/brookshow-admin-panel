@@ -1,9 +1,9 @@
-
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { StatsCard } from "@/components/dashboard/StatsCard";
 import { DataTable } from "@/components/dashboard/DataTable";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { Button } from "@/components/ui/button";
+import { Skeleton } from "@/components/ui/skeleton";
 import {
   Wallet,
   Clock,
@@ -18,144 +18,50 @@ import {
   Eye
 } from "lucide-react";
 import { useState } from "react";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { 
+  DashboardStat, 
+  getWithdrawalStats, 
+  WithdrawRequest, 
+  getWithdrawRequests,
+  updateWithdrawalStatus 
+} from "@/api/stats";
+import { toast } from "sonner";
+import { WithdrawalDetailsDialog } from "@/components/dashboard/WithdrawalDetailsDialog";
+import { RejectionDialog } from "@/components/dashboard/RejectionDialog";
 
-const stats = [
-  {
-    title: "Total Requests",
-    value: "156",
-    subtitle: "All time requests",
-    icon: Wallet,
-    variant: "default" as const,
-  },
-  {
-    title: "Pending",
-    value: "24",
-    subtitle: "₹8.5L total amount",
-    icon: Clock,
-    variant: "primary" as const,
-  },
-  {
-    title: "Approved",
-    value: "118",
-    subtitle: "₹42.3L disbursed",
-    icon: CheckCircle,
-    variant: "success" as const,
-  },
-  {
-    title: "Rejected",
-    value: "14",
-    subtitle: "Due to invalid details",
-    icon: XCircle,
-    variant: "accent" as const,
-  },
-];
+const iconMap = {
+  Wallet,
+  Clock,
+  CheckCircle,
+  XCircle,
+};
 
-const withdrawRequests = [
-  {
-    id: "WR001",
-    name: "DJ Shadow",
-    type: "artist",
-    email: "djshadow@email.com",
-    amount: "₹45,000",
-    bankDetails: "HDFC Bank ****1234",
-    requestedAt: "2024-01-15 10:30 AM",
-    status: "pending",
-  },
-  {
-    id: "WR002",
-    name: "EventPro Solutions",
-    type: "planner",
-    email: "contact@eventpro.com",
-    amount: "₹1,25,000",
-    bankDetails: "ICICI Bank ****5678",
-    requestedAt: "2024-01-15 08:15 AM",
-    status: "pending",
-  },
-  {
-    id: "WR003",
-    name: "The Band Project",
-    type: "artist",
-    email: "band@project.com",
-    amount: "₹32,500",
-    bankDetails: "SBI ****9012",
-    requestedAt: "2024-01-14 04:45 PM",
-    status: "pending",
-  },
-  {
-    id: "WR004",
-    name: "StarEvents",
-    type: "planner",
-    email: "hello@starevents.com",
-    amount: "₹85,000",
-    bankDetails: "Axis Bank ****3456",
-    requestedAt: "2024-01-14 02:20 PM",
-    status: "pending",
-  },
-  {
-    id: "WR005",
-    name: "Acoustic Nights",
-    type: "artist",
-    email: "acoustic@nights.com",
-    amount: "₹28,000",
-    bankDetails: "Kotak Bank ****7890",
-    requestedAt: "2024-01-13 11:00 AM",
-    status: "approved",
-  },
-  {
-    id: "WR006",
-    name: "Prime Productions",
-    type: "planner",
-    email: "info@primeprod.com",
-    amount: "₹2,50,000",
-    bankDetails: "HDFC Bank ****2345",
-    requestedAt: "2024-01-12 09:30 AM",
-    status: "approved",
-  },
-  {
-    id: "WR007",
-    name: "Solo Singer Jay",
-    type: "artist",
-    email: "jay@singer.com",
-    amount: "₹15,000",
-    bankDetails: "Invalid Account",
-    requestedAt: "2024-01-11 03:15 PM",
-    status: "rejected",
-  },
-  {
-    id: "WR008",
-    name: "Metro Events",
-    type: "planner",
-    email: "metro@events.com",
-    amount: "₹1,80,000",
-    bankDetails: "Yes Bank ****6789",
-    requestedAt: "2024-01-10 10:00 AM",
-    status: "approved",
-  },
-];
-
-type WithdrawRequest = typeof withdrawRequests[0];
-
-const getColumns = () => [
+const getColumns = (
+  onUpdateStatus: (id: string, status: "processed" | "rejected") => void,
+  onViewDetails: (id: string) => void,
+  updatingId: string | null
+) => [
   {
     header: "ID",
-    accessor: "id" as keyof WithdrawRequest,
+    accessor: (row: WithdrawRequest) => <span className="text-xs font-mono">{row._id.slice(-6).toUpperCase()}</span>,
     hideOnMobile: true,
   },
   {
     header: "Name",
     accessor: (row: WithdrawRequest) => (
       <div className="flex items-center gap-2">
-        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${row.type === "artist" ? "bg-gradient-primary" : "bg-gradient-accent"
+        <div className={`w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 ${row.userType === "artist" ? "bg-gradient-primary" : "bg-gradient-accent"
           }`}>
-          {row.type === "artist" ? (
+          {row.userType === "artist" ? (
             <User className="w-4 h-4 text-primary-foreground" />
           ) : (
             <Calendar className="w-4 h-4 text-accent-foreground" />
           )}
         </div>
         <div>
-          <p className="font-medium text-foreground">{row.name}</p>
-          <p className="text-xs text-muted-foreground hidden sm:block">{row.email}</p>
+          <p className="font-medium text-foreground">{row.userId?.displayName || "Unknown"}</p>
+          <p className="text-xs text-muted-foreground hidden sm:block">{row.userId?.email || "N/A"}</p>
         </div>
       </div>
     ),
@@ -164,36 +70,36 @@ const getColumns = () => [
     header: "Type",
     hideOnMobile: true,
     accessor: (row: WithdrawRequest) => (
-      <span className={`text-xs px-2 py-1 rounded-full ${row.type === "artist"
+      <span className={`text-xs px-2 py-1 rounded-full ${row.userType === "artist"
           ? "bg-primary/20 text-primary"
           : "bg-accent/20 text-accent"
         }`}>
-        {row.type === "artist" ? "Artist" : "Event Planner"}
+        {row.userType === "artist" ? "Artist" : "Event Planner"}
       </span>
     ),
   },
   {
     header: "Amount",
     accessor: (row: WithdrawRequest) => (
-      <span className="font-semibold text-foreground">{row.amount}</span>
+      <span className="font-semibold text-foreground">₹{row.amount?.toLocaleString() || "0"}</span>
     ),
   },
   {
     header: "Bank Details",
-    accessor: "bankDetails" as keyof WithdrawRequest,
+    accessor: (row: WithdrawRequest) => row.bankDetails?.upiId || row.bankDetails?.accountNumber || "N/A",
     hideOnMobile: true,
   },
   {
     header: "Requested",
     hideOnMobile: true,
     accessor: (row: WithdrawRequest) => (
-      <span className="text-sm text-muted-foreground">{row.requestedAt}</span>
+      <span className="text-sm text-muted-foreground">{row.createdAt ? new Date(row.createdAt).toLocaleDateString() : "N/A"}</span>
     ),
   },
   {
     header: "Status",
     accessor: (row: WithdrawRequest) => (
-      <StatusBadge status={row.status as "pending" | "approved" | "rejected"} />
+      <StatusBadge status={row.status === "processed" ? "approved" : row.status} />
     ),
   },
   {
@@ -204,6 +110,7 @@ const getColumns = () => [
           size="sm"
           variant="ghost"
           className="h-8 w-8 p-0 hover:bg-secondary"
+          onClick={() => onViewDetails(row._id)}
         >
           <Eye className="w-4 h-4" />
         </Button>
@@ -212,16 +119,20 @@ const getColumns = () => [
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 w-8 p-0 hover:bg-green-500/20 hover:text-green-500"
+              className="h-8 w-8 p-0 text-green-500 hover:bg-green-500/20 disabled:opacity-50"
+              onClick={() => onUpdateStatus(row._id, "processed")}
+              disabled={updatingId === row._id}
             >
-              <Check className="w-4 h-4" />
+              <CheckCircle className="w-4 h-4" />
             </Button>
             <Button
               size="sm"
               variant="ghost"
-              className="h-8 w-8 p-0 hover:bg-destructive/20 hover:text-destructive"
+              className="h-8 w-8 p-0 text-red-500 hover:bg-red-500/20 disabled:opacity-50"
+              onClick={() => onUpdateStatus(row._id, "rejected")}
+              disabled={updatingId === row._id}
             >
-              <X className="w-4 h-4" />
+              <XCircle className="w-4 h-4" />
             </Button>
           </>
         )}
@@ -231,15 +142,76 @@ const getColumns = () => [
 ];
 
 export default function WithdrawRequests() {
-  const [filter, setFilter] = useState<"all" | "pending" | "approved" | "rejected">("all");
+  const [filter, setFilter] = useState<"all" | "pending" | "processed" | "rejected">("all");
   const [typeFilter, setTypeFilter] = useState<"all" | "artist" | "planner">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const queryClient = useQueryClient();
+  const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [selectedWithdrawalId, setSelectedWithdrawalId] = useState<string | null>(null);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
+  const [rejectionDialog, setRejectionDialog] = useState<{
+    isOpen: boolean;
+    withdrawalId: string | null;
+  }>({
+    isOpen: false,
+    withdrawalId: null,
+  });
+
+  const { data: stats = [], isLoading: isLoadingStats } = useQuery<DashboardStat[]>({
+    queryKey: ["withdrawal-stats"],
+    queryFn: getWithdrawalStats,
+  });
+
+  const { data: withdrawRequests = [], isLoading: isLoadingRequests } = useQuery<WithdrawRequest[]>({
+    queryKey: ["withdraw-requests"],
+    queryFn: getWithdrawRequests,
+  });
+
+  const updateStatusMutation = useMutation({
+    mutationFn: ({ 
+      id, 
+      status, 
+      adminNotes 
+    }: { 
+      id: string; 
+      status: "processed" | "rejected";
+      adminNotes?: string;
+    }) => updateWithdrawalStatus(id, status, adminNotes),
+    onMutate: ({ id }) => {
+      setUpdatingId(id);
+    },
+    onSuccess: (_, { status }) => {
+      queryClient.invalidateQueries({ queryKey: ["withdraw-requests"] });
+      queryClient.invalidateQueries({ queryKey: ["withdrawal-stats"] });
+      toast.success(`Request ${status === "processed" ? "approved" : "rejected"} successfully`);
+    },
+    onError: (error) => {
+      toast.error(error instanceof Error ? error.message : "Failed to update request");
+    },
+    onSettled: () => {
+      setUpdatingId(null);
+      setRejectionDialog({ isOpen: false, withdrawalId: null });
+    },
+  });
+
+  const handleUpdateStatus = (id: string, status: "processed" | "rejected", adminNotes?: string) => {
+    if (status === "rejected" && !adminNotes) {
+      setRejectionDialog({ isOpen: true, withdrawalId: id });
+    } else {
+      updateStatusMutation.mutate({ id, status, adminNotes });
+    }
+  };
+
+  const handleViewDetails = (id: string) => {
+    setSelectedWithdrawalId(id);
+    setIsDetailsOpen(true);
+  };
 
   const filteredRequests = withdrawRequests.filter((request) => {
     const matchesStatus = filter === "all" || request.status === filter;
-    const matchesType = typeFilter === "all" || request.type === typeFilter;
-    const matchesSearch = request.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      request.id.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesType = typeFilter === "all" || request.userType === typeFilter;
+    const matchesSearch = (request.userId?.displayName || "").toLowerCase().includes(searchQuery.toLowerCase()) ||
+      (request._id || "").toLowerCase().includes(searchQuery.toLowerCase());
     return matchesStatus && matchesType && matchesSearch;
   });
 
@@ -252,13 +224,26 @@ export default function WithdrawRequests() {
 
       {/* Stats Grid */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6 mb-6 sm:mb-8">
-        {stats.map((stat) => (
-          <StatsCard
-            key={stat.title}
-            {...stat}
-            className="fade-in-scale"
-          />
-        ))}
+        {isLoadingStats ? (
+          Array(4).fill(0).map((_, i) => (
+            <div key={i} className="glass-modern rounded-xl p-4 sm:p-6 h-24 sm:h-32">
+              <Skeleton className="h-4 w-24 mb-2" />
+              <Skeleton className="h-8 w-16" />
+            </div>
+          ))
+        ) : (
+          stats.map((stat, index) => {
+            const Icon = iconMap[stat.icon as keyof typeof iconMap] || Wallet;
+            return (
+              <StatsCard
+                key={index}
+                {...stat}
+                icon={Icon}
+                className="fade-in-scale"
+              />
+            );
+          })
+        )}
       </div>
 
       {/* Filters */}
@@ -278,7 +263,7 @@ export default function WithdrawRequests() {
 
           {/* Status Filter */}
           <div className="flex gap-2 overflow-x-auto pb-2 sm:pb-0">
-            {(["all", "pending", "approved", "rejected"] as const).map((status) => (
+            {(["all", "pending", "processed", "rejected"] as const).map((status) => (
               <button
                 key={status}
                 onClick={() => setFilter(status)}
@@ -287,7 +272,7 @@ export default function WithdrawRequests() {
                     : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
                   }`}
               >
-                {status.charAt(0).toUpperCase() + status.slice(1)}
+                {status === "processed" ? "Approved" : status.charAt(0).toUpperCase() + status.slice(1)}
               </button>
             ))}
           </div>
@@ -322,8 +307,38 @@ export default function WithdrawRequests() {
             All Requests ({filteredRequests.length})
           </h2>
         </div>
-        <DataTable columns={getColumns()} data={filteredRequests} />
+        {isLoadingRequests ? (
+          <div className="space-y-4">
+            {Array(5).fill(0).map((_, i) => (
+              <Skeleton key={i} className="h-12 w-full" />
+            ))}
+          </div>
+        ) : (
+          <DataTable columns={getColumns(handleUpdateStatus, handleViewDetails, updatingId)} data={filteredRequests} />
+        )}
       </div>
+
+      <WithdrawalDetailsDialog 
+        isOpen={isDetailsOpen}
+        onClose={() => {
+          setIsDetailsOpen(false);
+          setSelectedWithdrawalId(null);
+        }}
+        withdrawalId={selectedWithdrawalId}
+      />
+
+      <RejectionDialog
+        isOpen={rejectionDialog.isOpen}
+        onClose={() => setRejectionDialog({ isOpen: false, withdrawalId: null })}
+        onConfirm={(reason) => {
+          if (rejectionDialog.withdrawalId) {
+            handleUpdateStatus(rejectionDialog.withdrawalId, "rejected", reason);
+          }
+        }}
+        title="Reject Withdrawal Request"
+        description="Please provide a reason for rejecting this withdrawal request. This note will be recorded for reference."
+        isSubmitting={updateStatusMutation.isPending}
+      />
     </>
   );
 }

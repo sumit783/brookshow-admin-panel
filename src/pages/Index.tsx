@@ -9,9 +9,13 @@ import {
   Ticket,
   IndianRupee,
   Music,
+  Wallet,
+  ArrowRightLeft,
+  ChevronRight,
   LucideIcon
 } from "lucide-react";
 import { useQuery } from "@tanstack/react-query";
+import { useNavigate } from "react-router-dom";
 import { getDashboardStats } from "@/api/stats";
 import { StatsSkeleton } from "@/components/skeletons/StatsSkeleton";
 
@@ -31,6 +35,7 @@ const recentActivity = [
 ];
 
 export default function Index() {
+  const navigate = useNavigate();
   const { data: stats, isLoading, error } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: getDashboardStats,
@@ -39,6 +44,14 @@ export default function Index() {
   if (error) {
     console.error("Failed to load stats:", error);
   }
+
+  const quickActions = [
+    { label: "Verify Artists", icon: Users, path: "/artists", gradient: "bg-gradient-primary" },
+    { label: "Manage Events", icon: Calendar, path: "/events", gradient: "bg-secondary" },
+    { label: "Withdrawals", icon: Wallet, path: "/withdrawals", gradient: "bg-secondary" },
+    { label: "Manage Bookings", icon: Ticket, path: "/bookings", gradient: "bg-secondary" },
+    { label: "Transactions", icon: ArrowRightLeft, path: "/transactions", gradient: "bg-secondary" },
+  ];
 
   return (
     <>
@@ -82,21 +95,34 @@ export default function Index() {
         </div>
 
         {/* Quick Actions */}
-        <div className="glass-modern rounded-xl p-4 sm:p-6">
+        <div className="glass-modern rounded-xl p-4 sm:p-6 h-full">
           <h2 className="text-base sm:text-lg font-semibold text-foreground mb-4 sm:mb-6">Quick Actions</h2>
           <div className="space-y-3">
-            <button className="w-full flex items-center gap-3 p-3 sm:p-4 rounded-lg bg-gradient-primary text-primary-foreground hover:shadow-glow transition-all duration-300">
-              <Users className="w-5 h-5 flex-shrink-0" />
-              <span className="font-medium text-sm sm:text-base">Verify Artists</span>
-              <span className="ml-auto bg-background/20 px-2 py-0.5 rounded-full text-xs">42</span>
-            </button>
-            <button className="w-full flex items-center gap-3 p-3 sm:p-4 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all">
-              <Calendar className="w-5 h-5 flex-shrink-0" />
-              <span className="font-medium text-sm sm:text-base">Manage Events</span>
-            </button>
-            <button className="w-full flex items-center gap-3 p-3 sm:p-4 rounded-lg bg-secondary text-secondary-foreground hover:bg-secondary/80 transition-all">
-              <span className="font-medium text-sm sm:text-base">View Reports</span>
-            </button>
+            {quickActions.map((action) => (
+              <button
+                key={action.path}
+                onClick={() => navigate(action.path)}
+                className={`w-full flex items-center gap-3 p-3 sm:p-4 rounded-xl transition-all duration-300 group ${
+                  action.gradient.includes("gradient") 
+                    ? `${action.gradient} text-primary-foreground hover:shadow-glow` 
+                    : "bg-secondary/50 text-secondary-foreground hover:bg-secondary border border-border/50 hover:border-primary/50"
+                }`}
+              >
+                <div className={`p-2 rounded-lg ${
+                  action.gradient.includes("gradient") 
+                    ? "bg-white/20" 
+                    : "bg-primary/10 text-primary"
+                }`}>
+                  <action.icon className="w-5 h-5 flex-shrink-0" />
+                </div>
+                <span className="font-medium text-sm sm:text-base flex-1 text-left">{action.label}</span>
+                <ChevronRight className={`w-4 h-4 transition-transform duration-300 ${
+                  action.gradient.includes("gradient") 
+                    ? "text-primary-foreground/50 group-hover:translate-x-1" 
+                    : "text-muted-foreground group-hover:text-primary group-hover:translate-x-1"
+                }`} />
+              </button>
+            ))}
           </div>
         </div>
       </div>

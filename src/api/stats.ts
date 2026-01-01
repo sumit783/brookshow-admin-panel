@@ -22,14 +22,44 @@ export interface BookingTrendData {
     artists: number;
 }
 
+export interface WalletTransaction {
+    _id: string;
+    ownerId: string;
+    ownerType: string;
+    type: string;
+    amount: number;
+    source: string;
+    referenceId: string | null;
+    description: string;
+    status: string;
+    createdAt: string;
+    updatedAt: string;
+    __v?: number;
+}
+
 export interface WithdrawRequest {
-    id: number;
-    name: string;
-    type: "artist" | "planner";
-    amount: string;
-    bankDetails: string;
-    requestedAt: string;
-    status: "pending" | "approved" | "rejected";
+    _id: string;
+    userId: {
+        _id: string;
+        displayName: string;
+        email?: string;
+        phone?: string;
+        role?: string;
+    };
+    userType: "artist" | "planner";
+    amount: number;
+    status: "pending" | "processed" | "rejected";
+    bankDetails?: {
+        upiId?: string;
+        accountNumber?: string;
+        ifscCode?: string;
+        bankName?: string;
+        accountHolderName?: string;
+    };
+    transactionId?: string | WalletTransaction;
+    createdAt: string;
+    updatedAt: string;
+    __v?: number;
 }
 
 export interface Transaction {
@@ -46,8 +76,8 @@ export interface Transaction {
 }
 
 export const getDashboardStats = async (): Promise<DashboardStat[]> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
+    const baseUrl = import.meta.env.VITE_API_URL;
+    const apiKey = import.meta.env.VITE_API_KEY;
     const token = localStorage.getItem("access_token");
     const response = await fetch(`${baseUrl}/api/admin/stats`, {
         headers: {
@@ -65,8 +95,8 @@ export const getDashboardStats = async (): Promise<DashboardStat[]> => {
 };
 
 export const getRevenueChartData = async (): Promise<RevenueChartData[]> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
+    const baseUrl = import.meta.env.VITE_API_URL;
+    const apiKey = import.meta.env.VITE_API_KEY;
     const token = localStorage.getItem("access_token");
 
     const response = await fetch(`${baseUrl}/api/admin/revenue-chart`, {
@@ -85,8 +115,8 @@ export const getRevenueChartData = async (): Promise<RevenueChartData[]> => {
 };
 
 export const getBookingTrends = async (): Promise<BookingTrendData[]> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
+    const baseUrl = import.meta.env.VITE_API_URL;
+    const apiKey = import.meta.env.VITE_API_KEY;
     const token = localStorage.getItem("access_token");
 
     const response = await fetch(`${baseUrl}/api/admin/booking-trends`, {
@@ -105,11 +135,11 @@ export const getBookingTrends = async (): Promise<BookingTrendData[]> => {
 };
 
 export const getWithdrawRequests = async (): Promise<WithdrawRequest[]> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
+    const baseUrl = import.meta.env.VITE_API_URL;
+    const apiKey = import.meta.env.VITE_API_KEY;
     const token = localStorage.getItem("access_token");
 
-    const response = await fetch(`${baseUrl}/api/admin/withdraw-requests`, {
+    const response = await fetch(`${baseUrl}/api/admin/withdrawals`, {
         headers: {
             "Content-Type": "application/json",
             "x-api-key": apiKey,
@@ -125,8 +155,8 @@ export const getWithdrawRequests = async (): Promise<WithdrawRequest[]> => {
 };
 
 export const getTransactions = async (): Promise<Transaction[]> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
+    const baseUrl = import.meta.env.VITE_API_URL;
+    const apiKey = import.meta.env.VITE_API_KEY;
     const token = localStorage.getItem("access_token");
 
     const response = await fetch(`${baseUrl}/api/admin/transactions`, {
@@ -139,6 +169,75 @@ export const getTransactions = async (): Promise<Transaction[]> => {
 
     if (!response.ok) {
         throw new Error("Failed to fetch transactions");
+    }
+
+    return response.json();
+};
+
+export const getWithdrawalStats = async (): Promise<DashboardStat[]> => {
+    const baseUrl = import.meta.env.VITE_API_URL;
+    const apiKey = import.meta.env.VITE_API_KEY;
+    const token = localStorage.getItem("access_token");
+
+    const response = await fetch(`${baseUrl}/api/admin/withdrawals/stats`, {
+        headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+            "Authorization": `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch withdrawal stats");
+    }
+
+    return response.json();
+};
+
+export const updateWithdrawalStatus = async (
+    id: string,
+    status: "processed" | "rejected",
+    adminNotes?: string
+): Promise<WithdrawRequest> => {
+    const baseUrl = import.meta.env.VITE_API_URL;
+    const apiKey = import.meta.env.VITE_API_KEY;
+    const token = localStorage.getItem("access_token");
+
+    const response = await fetch(`${baseUrl}/api/admin/withdrawals/${id}/status`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+            "Authorization": `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+            status,
+            ...(status === "rejected" && { adminNotes })
+        }),
+    });
+
+    if (!response.ok) {
+        throw new Error(`Failed to update withdrawal status to ${status}`);
+    }
+
+    return response.json();
+};
+
+export const getWithdrawRequestById = async (id: string): Promise<WithdrawRequest> => {
+    const baseUrl = import.meta.env.VITE_API_URL;
+    const apiKey = import.meta.env.VITE_API_KEY;
+    const token = localStorage.getItem("access_token");
+
+    const response = await fetch(`${baseUrl}/api/admin/withdrawals/${id}`, {
+        headers: {
+            "Content-Type": "application/json",
+            "x-api-key": apiKey,
+            "Authorization": `Bearer ${token}`,
+        },
+    });
+
+    if (!response.ok) {
+        throw new Error("Failed to fetch withdrawal request details");
     }
 
     return response.json();

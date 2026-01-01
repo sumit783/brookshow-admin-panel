@@ -19,13 +19,18 @@ interface DataTableProps<T> {
   columns: Column<T>[];
   data: T[];
   className?: string;
+  getRowId?: (row: T) => string | number;
 }
 
-export function DataTable<T extends { id: string | number }>({
+export function DataTable<T extends Record<string, any>>({
   columns,
   data,
   className,
+  getRowId,
 }: DataTableProps<T>) {
+  const defaultGetRowId = (row: T) => row.id || row._id || Math.random().toString();
+  const idGetter = getRowId || defaultGetRowId;
+
   return (
     <div className={cn("glass-modern rounded-xl overflow-hidden", className)}>
       <div className="overflow-x-auto">
@@ -47,9 +52,9 @@ export function DataTable<T extends { id: string | number }>({
             </TableRow>
           </TableHeader>
           <TableBody>
-            {data.map((row) => (
+            {data.map((row, rowIndex) => (
               <TableRow
-                key={row.id}
+                key={idGetter(row) || rowIndex}
                 className="border-b border-border/30 hover:bg-secondary/50 transition-colors"
               >
                 {columns.map((column, index) => (
@@ -63,7 +68,7 @@ export function DataTable<T extends { id: string | number }>({
                   >
                     {typeof column.accessor === "function"
                       ? column.accessor(row)
-                      : (row[column.accessor] as React.ReactNode)}
+                      : (row[column.accessor as keyof T] as React.ReactNode)}
                   </TableCell>
                 ))}
               </TableRow>

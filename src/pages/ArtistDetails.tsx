@@ -99,17 +99,17 @@ export default function ArtistDetails() {
                         <div className="relative inline-block mb-4">
                             <img
                                 src={artist.profileImage.startsWith("http") ? artist.profileImage : `${import.meta.env.VITE_API_URL || "http://localhost:3000"}${artist.profileImage}`}
-                                alt={artist.userId.displayName}
+                                alt={artist.userId?.displayName || "Unknown"}
                                 className="w-32 h-32 rounded-full object-cover border-4 border-card shadow-lg mx-auto"
                                 onError={(e) => {
-                                    (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.userId.displayName)}&background=random`;
+                                    (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.userId?.displayName || "Unknown")}&background=random`;
                                 }}
                             />
                             <div className="absolute bottom-2 right-2">
                                 <StatusBadge status={artist.verificationStatus === "verified" ? "approved" : artist.verificationStatus} />
                             </div>
                         </div>
-                        <h2 className="text-xl font-bold mb-2">{artist.userId.displayName}</h2>
+                        <h2 className="text-xl font-bold mb-2">{artist.userId?.displayName || "Unknown"}</h2>
                         <div className="flex items-center justify-center gap-2 text-muted-foreground mb-4">
                             <Music className="w-4 h-4" />
                             <span>{artist.category.join(", ")}</span>
@@ -136,11 +136,11 @@ export default function ArtistDetails() {
                         <div className="space-y-3">
                             <div className="flex items-center gap-3 text-sm">
                                 <Mail className="w-4 h-4 text-primary" />
-                                <span className="text-muted-foreground">{artist.userId.email}</span>
+                                <span className="text-muted-foreground">{artist.userId?.email || "N/A"}</span>
                             </div>
                             <div className="flex items-center gap-3 text-sm">
                                 <Phone className="w-4 h-4 text-primary" />
-                                <span className="text-muted-foreground">{artist.userId.phone}</span>
+                                <span className="text-muted-foreground">{artist.userId?.phone || "N/A"}</span>
                             </div>
                             <div className="flex items-center gap-3 text-sm">
                                 <MapPin className="w-4 h-4 text-primary" />

@@ -115,9 +115,9 @@ export default function VerifyArtists() {
 
   // Artists
   const filteredArtists = artists.filter(artist =>
-    artist.userId.displayName.toLowerCase().includes(artistSearchQuery.toLowerCase()) ||
+    artist.userId?.displayName?.toLowerCase().includes(artistSearchQuery.toLowerCase()) ||
     artist.category.some(c => c.toLowerCase().includes(artistSearchQuery.toLowerCase())) ||
-    artist.location.city.toLowerCase().includes(artistSearchQuery.toLowerCase())
+    artist.location?.city?.toLowerCase().includes(artistSearchQuery.toLowerCase())
   );
   const totalArtistPages = Math.ceil(filteredArtists.length / ITEMS_PER_PAGE);
   const paginatedArtists = filteredArtists.slice(
@@ -128,7 +128,7 @@ export default function VerifyArtists() {
 
   // Planners
   const filteredPlanners = planners.filter(planner =>
-    planner.userId.displayName.toLowerCase().includes(plannerSearchQuery.toLowerCase()) ||
+    planner.userId?.displayName?.toLowerCase().includes(plannerSearchQuery.toLowerCase()) ||
     (planner.organization && planner.organization.toLowerCase().includes(plannerSearchQuery.toLowerCase()))
   );
   const totalPlannerPages = Math.ceil(filteredPlanners.length / ITEMS_PER_PAGE);
@@ -226,10 +226,10 @@ export default function VerifyArtists() {
                     <div className="absolute -bottom-8 sm:-bottom-10 left-4 sm:left-6">
                       <img
                         src={artist.profileImage.startsWith("http") ? artist.profileImage : `${import.meta.env.VITE_API_URL || "http://localhost:3000"}${artist.profileImage}`}
-                        alt={artist.userId.displayName}
+                        alt={artist.userId?.displayName || "Unknown"}
                         className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border-4 border-card shadow-strong bg-secondary"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.userId.displayName)}&background=random`;
+                          (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(artist.userId?.displayName || "Unknown")}&background=random`;
                         }}
                       />
                     </div>
@@ -241,7 +241,7 @@ export default function VerifyArtists() {
                   {/* Content */}
                   <div className="pt-10 sm:pt-14 px-4 sm:px-6 pb-4 sm:pb-6">
                     <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1">
-                      {artist.userId.displayName}
+                      {artist.userId?.displayName || "Unknown"}
                     </h3>
                     <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
                       <Music className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -280,7 +280,7 @@ export default function VerifyArtists() {
                           variant="glass"
                           size="icon"
                           className="h-9 w-9"
-                          onClick={() => navigate(`/verify-artists/${artist._id}`)}
+                          onClick={() => navigate(`/artist/${artist._id}`)}
                         >
                           <Eye className="w-4 h-4" />
                         </Button>
@@ -371,10 +371,10 @@ export default function VerifyArtists() {
                     <div className="absolute -bottom-8 sm:-bottom-10 left-4 sm:left-6">
                       <img
                         src={planner.profileImage?.startsWith("http") ? planner.profileImage : (planner.profileImage ? `${import.meta.env.VITE_API_URL || "http://localhost:3000"}${planner.profileImage}` : "")}
-                        alt={planner.userId.displayName}
+                        alt={planner.userId?.displayName || "Unknown"}
                         className="w-16 h-16 sm:w-20 sm:h-20 rounded-xl object-cover border-4 border-card shadow-strong bg-secondary"
                         onError={(e) => {
-                          (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(planner.userId.displayName)}&background=random`;
+                          (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(planner.userId?.displayName || "Unknown")}&background=random`;
                         }}
                       />
                     </div>
@@ -386,7 +386,7 @@ export default function VerifyArtists() {
                   {/* Content */}
                   <div className="pt-10 sm:pt-14 px-4 sm:px-6 pb-4 sm:pb-6">
                     <h3 className="text-base sm:text-lg font-semibold text-foreground mb-1">
-                      {planner.userId.displayName}
+                      {planner.userId?.displayName || "Unknown"}
                     </h3>
                     {planner.organization && (
                       <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground mb-3 sm:mb-4">
