@@ -3,7 +3,7 @@ import { PageHeader } from "@/components/dashboard/PageHeader";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Check, X, Search, Eye, Music, MapPin, Star, ChevronLeft, ChevronRight, CalendarDays, Briefcase } from "lucide-react";
+import { Check, X, Search, Eye, Music, MapPin, Star, ChevronLeft, ChevronRight, CalendarDays, Briefcase, Loader2 } from "lucide-react";
 import { toast } from "sonner";
 import { useMutation, useQueryClient, useQuery } from "@tanstack/react-query";
 import { getArtists, verifyArtist, rejectArtist } from "@/api/artists";
@@ -262,15 +262,23 @@ export default function VerifyArtists() {
                           variant="success"
                           size="sm"
                           className="flex-1 text-xs sm:text-sm"
+                          disabled={verifyArtistMutation.isPending}
                           onClick={() => handleVerifyArtist(artist._id)}
                         >
-                          <Check className="w-3 h-3 sm:w-4 sm:h-4" />
-                          <span className="hidden sm:inline">Verify</span>
+                          {verifyArtistMutation.isPending && verifyArtistMutation.variables === artist._id ? (
+                            <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                          ) : (
+                            <Check className="w-3 h-3 sm:w-4 sm:h-4" />
+                          )}
+                          <span className="hidden sm:inline">
+                            {verifyArtistMutation.isPending && verifyArtistMutation.variables === artist._id ? "Verifying..." : "Verify"}
+                          </span>
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           className="flex-1 text-xs sm:text-sm"
+                          disabled={rejectArtistMutation.isPending}
                           onClick={() => handleRejectArtist(artist._id)}
                         >
                           <X className="w-3 h-3 sm:w-4 sm:h-4" />
@@ -410,15 +418,23 @@ export default function VerifyArtists() {
                           variant="success"
                           size="sm"
                           className="flex-1 text-xs sm:text-sm"
+                          disabled={verifyPlannerMutation.isPending}
                           onClick={() => handleVerifyPlanner(planner._id)}
                         >
-                          <Check className="w-3 h-3 sm:w-4 sm:h-4" />
-                          <span className="hidden sm:inline">Verify</span>
+                          {verifyPlannerMutation.isPending && verifyPlannerMutation.variables === planner._id ? (
+                            <Loader2 className="w-3 h-3 sm:w-4 sm:h-4 animate-spin" />
+                          ) : (
+                            <Check className="w-3 h-3 sm:w-4 sm:h-4" />
+                          )}
+                          <span className="hidden sm:inline">
+                            {verifyPlannerMutation.isPending && verifyPlannerMutation.variables === planner._id ? "Verifying..." : "Verify"}
+                          </span>
                         </Button>
                         <Button
                           variant="outline"
                           size="sm"
                           className="flex-1 text-xs sm:text-sm"
+                          disabled={rejectPlannerMutation.isPending}
                           onClick={() => handleRejectPlanner(planner._id)}
                         >
                           <X className="w-3 h-3 sm:w-4 sm:h-4" />

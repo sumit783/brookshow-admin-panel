@@ -4,7 +4,7 @@ import { getArtistById, verifyArtist, rejectArtist } from "@/api/artists";
 import { PageHeader } from "@/components/dashboard/PageHeader";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ArrowLeft, MapPin, Mail, Phone, Calendar, Wallet, CheckCircle, XCircle, Music } from "lucide-react";
+import { ArrowLeft, MapPin, Mail, Phone, Calendar, Wallet, CheckCircle, XCircle, Music, Loader2 } from "lucide-react";
 import { StatusBadge } from "@/components/dashboard/StatusBadge";
 import { toast } from "sonner";
 
@@ -118,11 +118,24 @@ export default function ArtistDetails() {
                         <div className="flex flex-col gap-2">
                             {artist.verificationStatus === "pending" && (
                                 <>
-                                    <Button onClick={handleVerify} className="w-full bg-green-600 hover:bg-green-700">
-                                        <CheckCircle className="w-4 h-4 mr-2" />
-                                        Approve Artist
+                                    <Button 
+                                        onClick={handleVerify} 
+                                        className="w-full bg-green-600 hover:bg-green-700"
+                                        disabled={verifyMutation.isPending}
+                                    >
+                                        {verifyMutation.isPending ? (
+                                            <Loader2 className="w-4 h-4 mr-2 animate-spin" />
+                                        ) : (
+                                            <CheckCircle className="w-4 h-4 mr-2" />
+                                        )}
+                                        {verifyMutation.isPending ? "Approving..." : "Approve Artist"}
                                     </Button>
-                                    <Button onClick={() => setIsRejectDialogOpen(true)} variant="destructive" className="w-full">
+                                    <Button 
+                                        onClick={() => setIsRejectDialogOpen(true)} 
+                                        variant="destructive" 
+                                        className="w-full"
+                                        disabled={verifyMutation.isPending}
+                                    >
                                         <XCircle className="w-4 h-4 mr-2" />
                                         Reject Artist
                                     </Button>

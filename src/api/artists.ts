@@ -54,7 +54,6 @@ export const getArtists = async (): Promise<Artist[]> => {
     }
 
     return response.json();
-    return response.json();
 };
 
 export const getArtistById = async (id: string): Promise<ArtistDetails> => {
