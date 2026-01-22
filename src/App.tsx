@@ -18,6 +18,7 @@ import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
 
 import { AdminLayout } from "./components/layout/AdminLayout";
+import { SpeedInsights } from "@vercel/speed-insights/react"
 // Removed Reports and Settings imports as they don't exist yet
 
 const queryClient = new QueryClient({
@@ -31,6 +32,7 @@ const queryClient = new QueryClient({
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <TooltipProvider>
+      <SpeedInsights/>
       <Toaster />
       <Sonner />
       <BrowserRouter>
