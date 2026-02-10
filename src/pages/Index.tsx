@@ -12,12 +12,26 @@ import {
   Wallet,
   ArrowRightLeft,
   ChevronRight,
-  LucideIcon
+  LucideIcon,
+  Edit
 } from "lucide-react";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { useNavigate } from "react-router-dom";
-import { getDashboardStats } from "@/api/stats";
+import { getDashboardStats, getCommissionData, updateCommission } from "@/api/stats";
 import { StatsSkeleton } from "@/components/skeletons/StatsSkeleton";
+import { useState } from "react";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { toast } from "sonner";
 
 const iconMap: Record<string, LucideIcon> = {
   Users,
@@ -25,21 +39,61 @@ const iconMap: Record<string, LucideIcon> = {
   Ticket,
   IndianRupee,
 };
-
-const recentActivity = [
-  { id: 1, type: "artist", name: "DJ Shadow", action: "submitted for verification", time: "2 mins ago" },
-  { id: 2, type: "booking", name: "Summer Fest 2024", action: "received 45 new bookings", time: "15 mins ago" },
-  { id: 3, type: "payment", name: "₹1,25,000", action: "payment received from Groove Night", time: "1 hour ago" },
-  { id: 4, type: "event", name: "Electric Dreams", action: "event created by promoter", time: "2 hours ago" },
-  { id: 5, type: "artist", name: "The Band Project", action: "verified and approved", time: "3 hours ago" },
-];
-
 export default function Index() {
   const navigate = useNavigate();
+  const queryClient = useQueryClient();
+  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [artistCommission, setArtistCommission] = useState("");
+  const [ticketCommission, setTicketCommission] = useState("");
+
   const { data: stats, isLoading, error } = useQuery({
     queryKey: ["dashboard-stats"],
     queryFn: getDashboardStats,
   });
+
+  const { data: commissionData, isLoading: isLoadingCommission } = useQuery({
+    queryKey: ["commission-data"],
+    queryFn: getCommissionData,
+  });
+
+  const updateCommissionMutation = useMutation({
+    mutationFn: (data: { artistBookingCommission: number; ticketSellCommission: number }) =>
+      updateCommission(commissionData?.commission?._id || "", data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["commission-data"] });
+      toast.success("Commission updated successfully");
+      setIsEditDialogOpen(false);
+    },
+    onError: (error: any) => {
+      toast.error(error?.message || "Failed to update commission");
+    },
+  });
+
+  const handleEditClick = () => {
+    setArtistCommission(commissionData?.commission?.artistBookingCommission?.toString() || "0");
+    setTicketCommission(commissionData?.commission?.ticketSellCommission?.toString() || "0");
+    setIsEditDialogOpen(true);
+  };
+
+  const handleSaveCommission = () => {
+    const artistValue = parseFloat(artistCommission);
+    const ticketValue = parseFloat(ticketCommission);
+
+    if (isNaN(artistValue) || isNaN(ticketValue)) {
+      toast.error("Please enter valid numbers");
+      return;
+    }
+
+    if (artistValue < 0 || artistValue > 100 || ticketValue < 0 || ticketValue > 100) {
+      toast.error("Commission must be between 0 and 100");
+      return;
+    }
+
+    updateCommissionMutation.mutate({
+      artistBookingCommission: artistValue,
+      ticketSellCommission: ticketValue,
+    });
+  };
 
   if (error) {
     console.error("Failed to load stats:", error);
@@ -80,6 +134,47 @@ export default function Index() {
             );
           })
         )}
+      </div>
+
+      {/* Commission Stats */}
+      <div className="glass-modern rounded-xl p-4 sm:p-6 mb-6 sm:mb-8">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-base sm:text-lg font-semibold text-foreground">Commission Settings</h2>
+          <Button
+            onClick={handleEditClick}
+            disabled={isLoadingCommission}
+            size="sm"
+            variant="outline"
+            className="gap-2"
+          >
+            <Edit className="w-4 h-4" />
+            Edit
+          </Button>
+        </div>
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          {isLoadingCommission ? (
+            Array(2).fill(0).map((_, i) => <StatsSkeleton key={i} />)
+          ) : (
+            <>
+              <StatsCard
+                title="Artist Booking Commission"
+                value={`${commissionData?.commission?.artistBookingCommission || 0}%`}
+                subtitle="Commission on artist bookings"
+                icon={Music}
+                variant="accent"
+                className="fade-in-scale"
+              />
+              <StatsCard
+                title="Ticket Sell Commission"
+                value={`${commissionData?.commission?.ticketSellCommission || 0}%`}
+                subtitle="Commission on ticket sales"
+                icon={Ticket}
+                variant="success"
+                className="fade-in-scale"
+              />
+            </>
+          )}
+        </div>
       </div>
 
       {/* Charts Row */}
@@ -155,6 +250,61 @@ export default function Index() {
           ))}
         </div>
       </div> */}
+
+      {/* Edit Commission Dialog */}
+      <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Edit Commission Settings</DialogTitle>
+            <DialogDescription>
+              Update the commission percentages for artist bookings and ticket sales.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="artistCommission">Artist Booking Commission (%)</Label>
+              <Input
+                id="artistCommission"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={artistCommission}
+                onChange={(e) => setArtistCommission(e.target.value)}
+                placeholder="Enter commission percentage"
+              />
+            </div>
+            <div className="grid gap-2">
+              <Label htmlFor="ticketCommission">Ticket Sell Commission (%)</Label>
+              <Input
+                id="ticketCommission"
+                type="number"
+                min="0"
+                max="100"
+                step="0.1"
+                value={ticketCommission}
+                onChange={(e) => setTicketCommission(e.target.value)}
+                placeholder="Enter commission percentage"
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setIsEditDialogOpen(false)}
+              disabled={updateCommissionMutation.isPending}
+            >
+              Cancel
+            </Button>
+            <Button
+              onClick={handleSaveCommission}
+              disabled={updateCommissionMutation.isPending}
+            >
+              {updateCommissionMutation.isPending ? "Saving..." : "Save Changes"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </>
   );
 }

@@ -1,4 +1,6 @@
 
+import { apiClient } from "./apiClient";
+
 export interface LoginRequest {
     email: string;
     password: string;
@@ -11,22 +13,8 @@ export interface LoginResponse {
 }
 
 export const loginAdmin = async (credentials: LoginRequest): Promise<LoginResponse> => {
-    const baseUrl = import.meta.env.VITE_API_URL;
-    const apiKey = import.meta.env.VITE_API_KEY;
-
-    const response = await fetch(`${baseUrl}/api/auth/admin-login`, {
+    return apiClient<LoginResponse>("/api/auth/admin-login", {
         method: "POST",
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-        },
-        body: JSON.stringify(credentials),
+        body: credentials,
     });
-
-    if (!response.ok) {
-        const errorData = await response.json().catch(() => ({}));
-        throw new Error(errorData.message || "Login failed");
-    }
-
-    return response.json();
 };

@@ -1,3 +1,5 @@
+import { apiClient } from "./apiClient";
+
 export interface ArtistUser {
     _id: string;
     email: string;
@@ -37,80 +39,22 @@ export interface ArtistDetails extends Artist {
 }
 
 export const getArtists = async (): Promise<Artist[]> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/artists`, {
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch artists");
-    }
-
-    return response.json();
+    return apiClient<Artist[]>("/api/admin/artists");
 };
 
 export const getArtistById = async (id: string): Promise<ArtistDetails> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/artists/${id}`, {
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch artist details");
-    }
-
-    return response.json();
+    return apiClient<ArtistDetails>(`/api/admin/artists/${id}`);
 };
 
 export const verifyArtist = async (id: string): Promise<void> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/artists/${id}/verify`, {
+    return apiClient<void>(`/api/admin/artists/${id}/verify`, {
         method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
     });
-
-    if (!response.ok) {
-        throw new Error("Failed to verify artist");
-    }
 };
 
 export const rejectArtist = async (id: string, message: string): Promise<void> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/artists/${id}/reject`, {
+    return apiClient<void>(`/api/admin/artists/${id}/reject`, {
         method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({ message }),
+        body: { message },
     });
-
-    if (!response.ok) {
-        throw new Error("Failed to reject artist");
-    }
 };

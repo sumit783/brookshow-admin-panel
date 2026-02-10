@@ -1,3 +1,5 @@
+import { apiClient } from "./apiClient";
+
 export interface Event {
     id: string;
     name: string;
@@ -46,41 +48,9 @@ export interface EventDetails extends Event {
 }
 
 export const getEventById = async (id: string): Promise<EventDetails> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/events/${id}`, {
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch event details");
-    }
-
-    return response.json();
+    return apiClient<EventDetails>(`/api/admin/events/${id}`);
 };
 
 export const getEvents = async (): Promise<Event[]> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/events`, {
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch events");
-    }
-
-    return response.json();
+    return apiClient<Event[]>("/api/admin/events");
 };

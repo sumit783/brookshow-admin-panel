@@ -1,3 +1,5 @@
+import { apiClient } from "./apiClient";
+
 export interface PlannerUser {
     _id: string;
     email: string;
@@ -36,80 +38,22 @@ export interface PlannerDetails extends Planner {
 }
 
 export const getPlanners = async (): Promise<Planner[]> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/planners`, {
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch planners");
-    }
-
-    return response.json();
+    return apiClient<Planner[]>("/api/admin/planners");
 };
 
 export const getPlannerById = async (id: string): Promise<PlannerDetails> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/planners/${id}`, {
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch planner details");
-    }
-
-    return response.json();
+    return apiClient<PlannerDetails>(`/api/admin/planners/${id}`);
 };
 
 export const verifyPlanner = async (id: string): Promise<void> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/planners/${id}/verify`, {
+    return apiClient<void>(`/api/admin/planners/${id}/verify`, {
         method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
     });
-
-    if (!response.ok) {
-        throw new Error("Failed to verify planner");
-    }
 };
 
 export const rejectPlanner = async (id: string, message: string): Promise<void> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/planners/${id}/reject`, {
+    return apiClient<void>(`/api/admin/planners/${id}/reject`, {
         method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({ message }),
+        body: { message },
     });
-
-    if (!response.ok) {
-        throw new Error("Failed to reject planner");
-    }
 };

@@ -1,3 +1,5 @@
+import { apiClient } from "./apiClient";
+
 export interface BookingStat {
     title: string;
     value: string | number;
@@ -111,61 +113,13 @@ export interface EventTicketDetails {
 export type BookingDetails = ArtistBookingDetails | EventTicketDetails;
 
 export const getBookingStats = async (): Promise<BookingStat[]> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/booking-stats`, {
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch booking stats");
-    }
-
-    return response.json();
+    return apiClient<BookingStat[]>("/api/admin/booking-stats");
 };
 
 export const getBookings = async (): Promise<Booking[]> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/bookings`, {
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch bookings");
-    }
-
-    return response.json();
+    return apiClient<Booking[]>("/api/admin/bookings");
 };
 
 export const getBookingById = async (id: string): Promise<BookingDetails> => {
-    const baseUrl = import.meta.env.VITE_API_URL || "http://localhost:3000";
-    const apiKey = import.meta.env.VITE_API_KEY || "";
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/bookings/${id}`, {
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch booking details");
-    }
-
-    return response.json();
+    return apiClient<BookingDetails>(`/api/admin/bookings/${id}`);
 };

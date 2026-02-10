@@ -1,3 +1,5 @@
+import { apiClient } from "./apiClient";
+
 export interface DashboardStat {
     title: string;
     value: string;
@@ -76,122 +78,27 @@ export interface Transaction {
 }
 
 export const getDashboardStats = async (): Promise<DashboardStat[]> => {
-    const baseUrl = import.meta.env.VITE_API_URL;
-    const apiKey = import.meta.env.VITE_API_KEY;
-    const token = localStorage.getItem("access_token");
-    const response = await fetch(`${baseUrl}/api/admin/stats`, {
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch dashboard stats");
-    }
-
-    return response.json();
+    return apiClient<DashboardStat[]>("/api/admin/stats");
 };
 
 export const getRevenueChartData = async (): Promise<RevenueChartData[]> => {
-    const baseUrl = import.meta.env.VITE_API_URL;
-    const apiKey = import.meta.env.VITE_API_KEY;
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/revenue-chart`, {
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch revenue chart data");
-    }
-
-    return response.json();
+    return apiClient<RevenueChartData[]>("/api/admin/revenue-chart");
 };
 
 export const getBookingTrends = async (): Promise<BookingTrendData[]> => {
-    const baseUrl = import.meta.env.VITE_API_URL;
-    const apiKey = import.meta.env.VITE_API_KEY;
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/booking-trends`, {
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch booking trends");
-    }
-
-    return response.json();
+    return apiClient<BookingTrendData[]>("/api/admin/booking-trends");
 };
 
 export const getWithdrawRequests = async (): Promise<WithdrawRequest[]> => {
-    const baseUrl = import.meta.env.VITE_API_URL;
-    const apiKey = import.meta.env.VITE_API_KEY;
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/withdrawals`, {
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch withdraw requests");
-    }
-
-    return response.json();
+    return apiClient<WithdrawRequest[]>("/api/admin/withdrawals");
 };
 
 export const getTransactions = async (): Promise<Transaction[]> => {
-    const baseUrl = import.meta.env.VITE_API_URL;
-    const apiKey = import.meta.env.VITE_API_KEY;
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/transactions`, {
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch transactions");
-    }
-
-    return response.json();
+    return apiClient<Transaction[]>("/api/admin/transactions");
 };
 
 export const getWithdrawalStats = async (): Promise<DashboardStat[]> => {
-    const baseUrl = import.meta.env.VITE_API_URL;
-    const apiKey = import.meta.env.VITE_API_KEY;
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/withdrawals/stats`, {
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-    });
-
-    if (!response.ok) {
-        throw new Error("Failed to fetch withdrawal stats");
-    }
-
-    return response.json();
+    return apiClient<DashboardStat[]>("/api/admin/withdrawals/stats");
 };
 
 export const updateWithdrawalStatus = async (
@@ -199,46 +106,46 @@ export const updateWithdrawalStatus = async (
     status: "processed" | "rejected",
     adminNotes?: string
 ): Promise<WithdrawRequest> => {
-    const baseUrl = import.meta.env.VITE_API_URL;
-    const apiKey = import.meta.env.VITE_API_KEY;
-    const token = localStorage.getItem("access_token");
-
-    const response = await fetch(`${baseUrl}/api/admin/withdrawals/${id}/status`, {
+    return apiClient<WithdrawRequest>(`/api/admin/withdrawals/${id}/status`, {
         method: "PUT",
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-        body: JSON.stringify({
+        body: {
             status,
             ...(status === "rejected" && { adminNotes })
-        }),
+        },
     });
-
-    if (!response.ok) {
-        throw new Error(`Failed to update withdrawal status to ${status}`);
-    }
-
-    return response.json();
 };
 
 export const getWithdrawRequestById = async (id: string): Promise<WithdrawRequest> => {
-    const baseUrl = import.meta.env.VITE_API_URL;
-    const apiKey = import.meta.env.VITE_API_KEY;
-    const token = localStorage.getItem("access_token");
+    return apiClient<WithdrawRequest>(`/api/admin/withdrawals/${id}`);
+};
 
-    const response = await fetch(`${baseUrl}/api/admin/withdrawals/${id}`, {
-        headers: {
-            "Content-Type": "application/json",
-            "x-api-key": apiKey,
-            "Authorization": `Bearer ${token}`,
-        },
-    });
+export interface Commission {
+    _id: string;
+    artistBookingCommission: number;
+    ticketSellCommission: number;
+    createdAt: string;
+    updatedAt: string;
+    __v: number;
+}
 
-    if (!response.ok) {
-        throw new Error("Failed to fetch withdrawal request details");
+export interface CommissionResponse {
+    success: boolean;
+    commission: Commission;
+}
+
+export const getCommissionData = async (): Promise<CommissionResponse> => {
+    return apiClient<CommissionResponse>("/api/commissions/");
+};
+
+export const updateCommission = async (
+    id: string,
+    data: {
+        artistBookingCommission: number;
+        ticketSellCommission: number;
     }
-
-    return response.json();
+): Promise<CommissionResponse> => {
+    return apiClient<CommissionResponse>(`/api/commissions/${id}`, {
+        method: "PUT",
+        body: data,
+    });
 };
