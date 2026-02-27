@@ -15,6 +15,7 @@ export interface Planner {
     verificationStatus: "pending" | "verified" | "rejected";
     isVerified: boolean;
     organization?: string;
+    verificationNote?: string;
 }
 
 export interface PlannerDetails extends Planner {

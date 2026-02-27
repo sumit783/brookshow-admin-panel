@@ -21,6 +21,7 @@ export interface Artist {
     category: string[];
     verificationStatus: "pending" | "verified" | "rejected";
     isVerified: boolean;
+    verificationNote?: string;
 }
 
 export interface ArtistDetails extends Artist {

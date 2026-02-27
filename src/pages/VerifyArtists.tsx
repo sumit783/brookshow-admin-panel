@@ -253,10 +253,16 @@ export default function VerifyArtists() {
                         <MapPin className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
                         <span className="truncate">{artist.location.city}, {artist.location.state}</span>
                       </div>
+                      {artist.verificationStatus === "rejected" && artist.verificationNote && (
+                        <div className="mt-2 p-2 rounded bg-destructive/10 border border-destructive/20">
+                          <p className="text-[10px] sm:text-xs font-medium text-destructive mb-0.5">Rejection Reason:</p>
+                          <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-2">{artist.verificationNote}</p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Actions */}
-                    {artist.verificationStatus === "pending" && (
+                    {["pending", "rejected"].includes(artist.verificationStatus) && (
                       <div className="flex items-center gap-2">
                         <Button
                           variant="success"
@@ -295,7 +301,7 @@ export default function VerifyArtists() {
                       </div>
                     )}
 
-                    {artist.verificationStatus !== "pending" && (
+                    {!["pending", "rejected"].includes(artist.verificationStatus) && (
                       <Button
                         variant="glass"
                         size="sm"
@@ -409,10 +415,16 @@ export default function VerifyArtists() {
                     <div className="space-y-1.5 sm:space-y-2 mb-3 sm:mb-4">
                       {/* Planner location removed as it is not in the data structure */}
                       <div className="h-4 sm:h-5"></div>
+                      {planner.verificationStatus === "rejected" && planner.verificationNote && (
+                        <div className="mt-2 p-2 rounded bg-destructive/10 border border-destructive/20">
+                          <p className="text-[10px] sm:text-xs font-medium text-destructive mb-0.5">Rejection Reason:</p>
+                          <p className="text-[11px] sm:text-xs text-muted-foreground line-clamp-2">{planner.verificationNote}</p>
+                        </div>
+                      )}
                     </div>
 
                     {/* Actions */}
-                    {planner.verificationStatus === "pending" && (
+                    {["pending", "rejected"].includes(planner.verificationStatus) && (
                       <div className="flex items-center gap-2">
                         <Button
                           variant="success"
@@ -451,7 +463,7 @@ export default function VerifyArtists() {
                       </div>
                     )}
 
-                    {planner.verificationStatus !== "pending" && (
+                    {!["pending", "rejected"].includes(planner.verificationStatus) && (
                       <Button
                         variant="glass"
                         size="sm"

@@ -116,10 +116,10 @@ export default function ArtistDetails() {
                         </div>
 
                         <div className="flex flex-col gap-2">
-                            {artist.verificationStatus === "pending" && (
+                            {["pending", "rejected"].includes(artist.verificationStatus) && (
                                 <>
-                                    <Button 
-                                        onClick={handleVerify} 
+                                    <Button
+                                        onClick={handleVerify}
                                         className="w-full bg-green-600 hover:bg-green-700"
                                         disabled={verifyMutation.isPending}
                                     >
@@ -130,9 +130,9 @@ export default function ArtistDetails() {
                                         )}
                                         {verifyMutation.isPending ? "Approving..." : "Approve Artist"}
                                     </Button>
-                                    <Button 
-                                        onClick={() => setIsRejectDialogOpen(true)} 
-                                        variant="destructive" 
+                                    <Button
+                                        onClick={() => setIsRejectDialogOpen(true)}
+                                        variant="destructive"
                                         className="w-full"
                                         disabled={verifyMutation.isPending}
                                     >
@@ -140,6 +140,17 @@ export default function ArtistDetails() {
                                         Reject Artist
                                     </Button>
                                 </>
+                            )}
+                            {artist.verificationStatus === "rejected" && artist.verificationNote && (
+                                <div className="mt-4 p-4 rounded-xl bg-destructive/10 border border-destructive/20 text-left">
+                                    <h4 className="text-sm font-semibold text-destructive mb-1 flex items-center gap-2">
+                                        <XCircle className="w-4 h-4" />
+                                        Rejection Reason
+                                    </h4>
+                                    <p className="text-sm text-muted-foreground leading-relaxed">
+                                        {artist.verificationNote}
+                                    </p>
+                                </div>
                             )}
                         </div>
                     </div>
