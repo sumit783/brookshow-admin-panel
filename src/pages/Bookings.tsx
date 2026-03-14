@@ -41,6 +41,8 @@ const iconMap: Record<string, any> = {
 export default function Bookings() {
   const [searchQuery, setSearchQuery] = useState("");
   const [filterType, setFilterType] = useState<"all" | "ticket" | "artist">("all");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
 
   const { data: stats, isLoading: statsLoading } = useQuery({
     queryKey: ["bookingStats"],
@@ -62,6 +64,29 @@ export default function Bookings() {
 
     return matchesSearch && matchesFilter;
   });
+
+  // Pagination logic
+  const totalPages = Math.ceil(filteredBookings.length / itemsPerPage);
+  const paginatedBookings = filteredBookings.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Reset to page 1 on search or filter change
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    setCurrentPage(1);
+  };
+
+  const handleFilterChange = (type: "all" | "ticket" | "artist") => {
+    setFilterType(type);
+    setCurrentPage(1);
+  };
 
   const columns = [
     {
@@ -149,7 +174,7 @@ export default function Bookings() {
           <Input
             placeholder="Search bookings..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10 bg-secondary border-border"
           />
         </div>
@@ -198,7 +223,7 @@ export default function Bookings() {
         ].map((tab) => (
           <button
             key={tab.value}
-            onClick={() => setFilterType(tab.value as typeof filterType)}
+            onClick={() => handleFilterChange(tab.value as "all" | "ticket" | "artist")}
             className={`px-3 sm:px-4 py-2 rounded-lg text-xs sm:text-sm font-medium transition-all duration-200 whitespace-nowrap ${filterType === tab.value
               ? "bg-gradient-primary text-primary-foreground shadow-glow"
               : "bg-secondary text-muted-foreground hover:text-foreground"
@@ -225,7 +250,15 @@ export default function Bookings() {
           ))}
         </div>
       ) : (
-        <DataTable columns={columns} data={filteredBookings} />
+        <DataTable 
+          columns={columns} 
+          data={paginatedBookings} 
+          pagination={{
+            currentPage,
+            totalPages,
+            onPageChange: handlePageChange
+          }}
+        />
       )}
     </>
   );

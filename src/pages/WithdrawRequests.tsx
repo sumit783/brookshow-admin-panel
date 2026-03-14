@@ -145,6 +145,8 @@ export default function WithdrawRequests() {
   const [filter, setFilter] = useState<"all" | "pending" | "processed" | "rejected">("all");
   const [typeFilter, setTypeFilter] = useState<"all" | "artist" | "planner">("all");
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
   const queryClient = useQueryClient();
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [selectedWithdrawalId, setSelectedWithdrawalId] = useState<string | null>(null);
@@ -215,6 +217,34 @@ export default function WithdrawRequests() {
     return matchesStatus && matchesType && matchesSearch;
   });
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredRequests.length / itemsPerPage);
+  const paginatedRequests = filteredRequests.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Reset to page 1 on search or filter change
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    setCurrentPage(1);
+  };
+
+  const handleStatusFilterChange = (status: "all" | "pending" | "processed" | "rejected") => {
+    setFilter(status);
+    setCurrentPage(1);
+  };
+
+  const handleTypeFilterChange = (type: "all" | "artist" | "planner") => {
+    setTypeFilter(type);
+    setCurrentPage(1);
+  };
+
   return (
     <>
       <PageHeader
@@ -256,7 +286,7 @@ export default function WithdrawRequests() {
               type="text"
               placeholder="Search by name or ID..."
               value={searchQuery}
-              onChange={(e) => setSearchQuery(e.target.value)}
+              onChange={(e) => handleSearchChange(e.target.value)}
               className="w-full pl-10 pr-4 py-2 bg-secondary/50 border border-border rounded-lg text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-primary/50"
             />
           </div>
@@ -266,7 +296,7 @@ export default function WithdrawRequests() {
             {(["all", "pending", "processed", "rejected"] as const).map((status) => (
               <button
                 key={status}
-                onClick={() => setFilter(status)}
+                onClick={() => handleStatusFilterChange(status)}
                 className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all ${filter === status
                     ? "bg-gradient-primary text-primary-foreground"
                     : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
@@ -282,7 +312,7 @@ export default function WithdrawRequests() {
             {(["all", "artist", "planner"] as const).map((type) => (
               <button
                 key={type}
-                onClick={() => setTypeFilter(type)}
+                onClick={() => handleTypeFilterChange(type)}
                 className={`px-3 py-2 rounded-lg text-sm font-medium whitespace-nowrap transition-all flex items-center gap-2 ${typeFilter === type
                     ? "bg-gradient-accent text-accent-foreground"
                     : "bg-secondary/50 text-muted-foreground hover:bg-secondary"
@@ -314,7 +344,15 @@ export default function WithdrawRequests() {
             ))}
           </div>
         ) : (
-          <DataTable columns={getColumns(handleUpdateStatus, handleViewDetails, updatingId)} data={filteredRequests} />
+          <DataTable 
+            columns={getColumns(handleUpdateStatus, handleViewDetails, updatingId)} 
+            data={paginatedRequests} 
+            pagination={{
+              currentPage,
+              totalPages,
+              onPageChange: handlePageChange
+            }}
+          />
         )}
       </div>
 

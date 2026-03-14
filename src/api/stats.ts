@@ -93,8 +93,8 @@ export const getWithdrawRequests = async (): Promise<WithdrawRequest[]> => {
     return apiClient<WithdrawRequest[]>("/api/admin/withdrawals");
 };
 
-export const getTransactions = async (): Promise<Transaction[]> => {
-    return apiClient<Transaction[]>("/api/admin/transactions");
+export const getTransactions = async (): Promise<WalletTransaction[]> => {
+    return apiClient<WalletTransaction[]>("/api/admin/transactions");
 };
 
 export const getWithdrawalStats = async (): Promise<DashboardStat[]> => {

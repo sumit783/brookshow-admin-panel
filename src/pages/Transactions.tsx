@@ -16,7 +16,7 @@ import {
 } from "lucide-react";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { getTransactions, Transaction } from "@/api/stats";
+import { getTransactions, WalletTransaction } from "@/api/stats";
 
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-IN', {
@@ -28,6 +28,8 @@ const formatCurrency = (amount: number) => {
 
 export default function Transactions() {
   const [searchQuery, setSearchQuery] = useState("");
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 50;
 
   const { data: transactions = [], isLoading, error } = useQuery({
     queryKey: ["transactions"],
@@ -39,75 +41,99 @@ export default function Transactions() {
   }
 
   const filteredTransactions = transactions.filter(txn =>
-    txn.eventName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    txn.artistName?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-    txn.id?.toLowerCase().includes(searchQuery.toLowerCase())
+    txn._id?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    txn.description?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+    txn.ownerType?.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
+  // Pagination logic
+  const totalPages = Math.ceil(filteredTransactions.length / itemsPerPage);
+  const paginatedTransactions = filteredTransactions.slice(
+    (currentPage - 1) * itemsPerPage,
+    currentPage * itemsPerPage
+  );
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page);
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  };
+
+  // Reset to page 1 on search
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    setCurrentPage(1);
+  };
+
   // Calculate totals
-  const totalAdvance = transactions.reduce((sum, t) => sum + t.advancePayment, 0) || 0;
-  const totalPayment = transactions.reduce((sum, t) => sum + t.totalPayment, 0) || 0;
-  const totalReceived = transactions.reduce((sum, t) => sum + t.receivedAmount, 0) || 0;
-  const totalPending = transactions.reduce((sum, t) => sum + t.pendingAmount, 0) || 0;
+  const totalVolume = transactions.reduce((sum, t) => sum + t.amount, 0) || 0;
+  const totalCredits = transactions.reduce((sum, t) => t.type === 'credit' ? sum + t.amount : sum, 0) || 0;
+  const totalDebits = transactions.reduce((sum, t) => t.type === 'debit' ? sum + t.amount : sum, 0) || 0;
+  const pendingAmount = transactions.reduce((sum, t) => t.status === 'pending' ? sum + t.amount : sum, 0) || 0;
 
   const columns = [
     {
       header: "Transaction ID",
-      accessor: (row: Transaction) => (
+      accessor: (row: WalletTransaction) => (
         <div className="flex items-center gap-2">
-          <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${row.type === "incoming" ? "bg-emerald-500/20" : "bg-amber-500/20"
+          <div className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center flex-shrink-0 ${row.type === "credit" ? "bg-emerald-500/20" : "bg-amber-500/20"
             }`}>
-            {row.type === "incoming" ? (
+            {row.type === "credit" ? (
               <ArrowDownLeft className="w-3 h-3 sm:w-4 sm:h-4 text-emerald-400" />
             ) : (
               <ArrowUpRight className="w-3 h-3 sm:w-4 sm:h-4 text-amber-400" />
             )}
           </div>
-          <span className="font-medium text-foreground text-xs sm:text-sm">{row.id}</span>
+          <span className="font-medium text-foreground text-xs sm:text-sm" title={row._id}>
+            {row._id.slice(-8)}
+          </span>
         </div>
       ),
     },
     {
-      header: "Event / Artist",
-      accessor: (row: Transaction) => (
-        <div className="min-w-0">
-          <p className="font-medium text-foreground text-xs sm:text-sm truncate">{row.eventName}</p>
-          <p className="text-xs text-muted-foreground truncate">{row.artistName}</p>
+      header: "Description & Info",
+      className: "min-w-[200px] sm:min-w-[400px]",
+      accessor: (row: WalletTransaction) => (
+        <div className="min-w-0 max-w-[300px] sm:max-w-[600px]">
+          <p className="font-medium text-foreground text-xs sm:text-sm line-clamp-2 leading-relaxed" title={row.description}>
+            {row.description}
+          </p>
+          <div className="flex items-center gap-2 mt-1.5">
+            <span className="text-[10px] sm:text-xs font-medium px-2 py-0.5 rounded-full bg-secondary/50 text-muted-foreground capitalize">
+              {row.ownerType}
+            </span>
+            <span className="text-[10px] sm:text-xs text-muted-foreground capitalize">
+              {row.source}
+            </span>
+          </div>
         </div>
       ),
     },
     {
-      header: "Advance",
-      accessor: (row: Transaction) => (
-        <span className="text-foreground font-medium text-xs sm:text-sm">{formatCurrency(row.advancePayment)}</span>
-      ),
-      hideOnMobile: true,
-    },
-    {
-      header: "Total",
-      accessor: (row: Transaction) => (
-        <span className="text-foreground font-medium text-xs sm:text-sm">{formatCurrency(row.totalPayment)}</span>
+      header: "Amount",
+      accessor: (row: WalletTransaction) => (
+        <span className={`font-medium text-xs sm:text-sm ${row.type === 'credit' ? 'text-emerald-400' : 'text-amber-400'}`}>
+          {row.type === 'credit' ? '+' : '-'}{formatCurrency(row.amount)}
+        </span>
       ),
     },
     {
-      header: "Received",
-      accessor: (row: Transaction) => (
-        <span className="text-emerald-400 font-medium text-xs sm:text-sm">{formatCurrency(row.receivedAmount)}</span>
-      ),
-      hideOnMobile: true,
-    },
-    {
-      header: "Pending",
-      accessor: (row: Transaction) => (
-        <span className={`font-medium text-xs sm:text-sm ${row.pendingAmount > 0 ? "text-amber-400" : "text-muted-foreground"}`}>
-          {formatCurrency(row.pendingAmount)}
+      header: "Date",
+      accessor: (row: WalletTransaction) => (
+        <span className="text-muted-foreground text-xs sm:text-sm">
+          {new Date(row.createdAt).toLocaleDateString('en-IN', {
+            day: 'numeric',
+            month: 'short',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit'
+          })}
         </span>
       ),
       hideOnMobile: true,
     },
     {
       header: "Status",
-      accessor: (row: Transaction) => <StatusBadge status={row.status} />,
+      accessor: (row: WalletTransaction) => <StatusBadge status={row.status as any} />,
     },
   ];
 
@@ -115,14 +141,14 @@ export default function Transactions() {
     <>
       <PageHeader
         title="Transactions"
-        description="Track all payments and financial transactions"
+        description="Track all wallet transactions and payments"
       >
         <div className="relative w-full sm:w-64">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
           <Input
             placeholder="Search transactions..."
             value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
+            onChange={(e) => handleSearchChange(e.target.value)}
             className="pl-10 bg-secondary border-border"
           />
         </div>
@@ -149,31 +175,31 @@ export default function Transactions() {
         ) : (
           <>
             <StatsCard
-              title="Total Advance"
-              value={formatCurrency(totalAdvance)}
-              subtitle="Advance collected"
+              title="Total Volume"
+              value={formatCurrency(totalVolume)}
+              subtitle="All transactions"
               icon={IndianRupee}
               variant="default"
             />
             <StatsCard
-              title="Total Payment"
-              value={formatCurrency(totalPayment)}
-              subtitle="Overall value"
-              icon={IndianRupee}
-              variant="primary"
-            />
-            <StatsCard
-              title="Total Received"
-              value={formatCurrency(totalReceived)}
-              subtitle="Amount received"
+              title="Total Credits"
+              value={formatCurrency(totalCredits)}
+              subtitle="Incoming funds"
               icon={ArrowDownLeft}
               variant="success"
             />
             <StatsCard
-              title="Total Pending"
-              value={formatCurrency(totalPending)}
-              subtitle="Outstanding"
+              title="Total Debits"
+              value={formatCurrency(totalDebits)}
+              subtitle="Outgoing funds"
               icon={ArrowUpRight}
+              variant="primary"
+            />
+            <StatsCard
+              title="Pending"
+              value={formatCurrency(pendingAmount)}
+              subtitle="Awaiting processing"
+              icon={Filter}
               variant="warning"
             />
           </>
@@ -189,7 +215,15 @@ export default function Transactions() {
           <div className="h-20 w-full bg-secondary/20 rounded-md"></div>
         </div>
       ) : (
-        <DataTable columns={columns} data={filteredTransactions} />
+        <DataTable 
+          columns={columns} 
+          data={paginatedTransactions} 
+          pagination={{
+            currentPage,
+            totalPages,
+            onPageChange: handlePageChange
+          }}
+        />
       )}
     </>
   );
