@@ -13,6 +13,8 @@ import Transactions from "./pages/Transactions";
 import Bookings from "./pages/Bookings";
 import BookingDetails from "./pages/BookingDetails";
 import WithdrawRequests from "./pages/WithdrawRequests";
+import Categories from "./pages/Categories";
+import Contacts from "./pages/Contacts";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -50,6 +52,8 @@ const App = () => (
               <Route path="/bookings" element={<Bookings />} />
               <Route path="/bookings/:id" element={<BookingDetails />} />
               <Route path="/withdrawals" element={<WithdrawRequests />} />
+              <Route path="/categories" element={<Categories />} />
+              <Route path="/contacts" element={<Contacts />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

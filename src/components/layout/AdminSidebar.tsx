@@ -8,7 +8,9 @@ import {
   Menu,
   X,
   Music2,
-  Wallet
+  Wallet,
+  Tags,
+  MessageSquare
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -20,6 +22,8 @@ const navItems = [
   { title: "Transactions", url: "/transactions", icon: Receipt },
   { title: "Bookings", url: "/bookings", icon: Ticket },
   { title: "Withdrawals", url: "/withdrawals", icon: Wallet },
+  { title: "Categories", url: "/categories", icon: Tags },
+  { title: "Contacts", url: "/contacts", icon: MessageSquare },
 ];
 
 interface AdminSidebarProps {
