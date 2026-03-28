@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils";
-import { LucideIcon } from "lucide-react";
+import { LucideIcon, Info } from "lucide-react";
 
 interface StatsCardProps {
   title: string;
@@ -8,6 +8,7 @@ interface StatsCardProps {
   icon: LucideIcon;
   variant?: "default" | "primary" | "accent" | "success" | "warning";
   className?: string;
+  onInfoClick?: () => void;
 }
 
 const variantStyles = {
@@ -33,6 +34,7 @@ export function StatsCard({
   icon: Icon,
   variant = "default",
   className,
+  onInfoClick,
 }: StatsCardProps) {
   const isGradient = variant !== "default";
 
@@ -46,12 +48,30 @@ export function StatsCard({
     >
       <div className="flex items-start justify-between">
         <div className="space-y-1 sm:space-y-2 min-w-0 flex-1">
-          <p className={cn(
-            "text-xs sm:text-sm font-medium",
-            isGradient ? "text-primary-foreground/80" : "text-muted-foreground"
-          )}>
-            {title}
-          </p>
+          <div className="flex items-center gap-1">
+            <p className={cn(
+              "text-xs sm:text-sm font-medium",
+              isGradient ? "text-primary-foreground/80" : "text-muted-foreground"
+            )}>
+              {title}
+            </p>
+            {onInfoClick && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  onInfoClick();
+                }}
+                className={cn(
+                  "p-0.5 rounded-full transition-colors",
+                  isGradient 
+                    ? "text-primary-foreground/60 hover:text-primary-foreground hover:bg-white/10" 
+                    : "text-muted-foreground hover:text-primary hover:bg-primary/10"
+                )}
+              >
+                <Info className="w-3.5 h-3.5" />
+              </button>
+            )}
+          </div>
           <p className={cn(
             "text-2xl sm:text-3xl font-bold tracking-tight font-heading truncate",
             isGradient ? "text-primary-foreground" : "text-foreground"

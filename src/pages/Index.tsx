@@ -45,6 +45,20 @@ export default function Index() {
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
   const [artistCommission, setArtistCommission] = useState("");
   const [ticketCommission, setTicketCommission] = useState("");
+  const [revenueSplit, setRevenueSplit] = useState<{ total: number; title: string } | null>(null);
+
+  const parseRevenue = (val: string | number) => {
+    if (typeof val === 'number') return val;
+    return parseFloat(val.replace(/[^\d.-]/g, '')) || 0;
+  };
+
+  const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-IN', {
+      style: 'currency',
+      currency: 'INR',
+      maximumFractionDigits: 0
+    }).format(amount);
+  };
 
   const { data: stats, isLoading, error } = useQuery({
     queryKey: ["dashboard-stats"],
@@ -130,6 +144,7 @@ export default function Index() {
                 icon={IconComponent}
                 variant={stat.variant}
                 className="fade-in-scale"
+                onInfoClick={stat.title.toLowerCase().includes('revenue') ? () => setRevenueSplit({ total: parseRevenue(stat.value), title: stat.title }) : undefined}
               />
             );
           })
@@ -302,6 +317,61 @@ export default function Index() {
             >
               {updateCommissionMutation.isPending ? "Saving..." : "Save Changes"}
             </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Revenue Split Dialog */}
+      <Dialog open={!!revenueSplit} onOpenChange={(open) => !open && setRevenueSplit(null)}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>Revenue Split Details</DialogTitle>
+            <DialogDescription>
+              Breakdown of {revenueSplit?.title} ({formatCurrency(revenueSplit?.total || 0)})
+            </DialogDescription>
+          </DialogHeader>
+          <div className="grid gap-6 py-4">
+            <div className="space-y-4">
+              <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border/50">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium">Sumit</p>
+                  <p className="text-xs text-muted-foreground">Commission: 10%</p>
+                </div>
+                <p className="text-lg font-bold text-primary">
+                  {formatCurrency((revenueSplit?.total || 0) * 0.1)}
+                </p>
+              </div>
+              
+              <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border/50">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium">Aditya Raj</p>
+                  <p className="text-xs text-muted-foreground">Commission: 45%</p>
+                </div>
+                <p className="text-lg font-bold text-primary">
+                  {formatCurrency((revenueSplit?.total || 0) * 0.45)}
+                </p>
+              </div>
+
+              <div className="flex items-center justify-between p-3 rounded-lg bg-secondary/50 border border-border/50">
+                <div className="space-y-0.5">
+                  <p className="text-sm font-medium">Indar</p>
+                  <p className="text-xs text-muted-foreground">Commission: 45%</p>
+                </div>
+                <p className="text-lg font-bold text-primary">
+                  {formatCurrency((revenueSplit?.total || 0) * 0.45)}
+                </p>
+              </div>
+            </div>
+
+            <div className="pt-4 border-t border-border">
+              <div className="flex items-center justify-between px-3">
+                <p className="text-sm font-semibold">Total Revenue</p>
+                <p className="text-lg font-bold">{formatCurrency(revenueSplit?.total || 0)}</p>
+              </div>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button onClick={() => setRevenueSplit(null)}>Close</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
