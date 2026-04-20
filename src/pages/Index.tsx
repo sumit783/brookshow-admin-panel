@@ -56,7 +56,8 @@ export default function Index() {
     return new Intl.NumberFormat('en-IN', {
       style: 'currency',
       currency: 'INR',
-      maximumFractionDigits: 0
+      maximumFractionDigits: 2,
+      minimumFractionDigits: 2
     }).format(amount);
   };
 
