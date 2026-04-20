@@ -15,6 +15,7 @@ import BookingDetails from "./pages/BookingDetails";
 import WithdrawRequests from "./pages/WithdrawRequests";
 import Categories from "./pages/Categories";
 import Contacts from "./pages/Contacts";
+import HeroImages from "./pages/HeroImages";
 import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
@@ -54,6 +55,7 @@ const App = () => (
               <Route path="/withdrawals" element={<WithdrawRequests />} />
               <Route path="/categories" element={<Categories />} />
               <Route path="/contacts" element={<Contacts />} />
+              <Route path="/hero" element={<HeroImages />} />
             </Route>
           </Route>
           <Route path="*" element={<Navigate to="/" replace />} />

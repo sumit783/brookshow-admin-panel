@@ -10,7 +10,8 @@ import {
   Music2,
   Wallet,
   Tags,
-  MessageSquare
+  MessageSquare,
+  Image as ImageIcon
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
@@ -23,6 +24,7 @@ const navItems = [
   { title: "Bookings", url: "/bookings", icon: Ticket },
   { title: "Withdrawals", url: "/withdrawals", icon: Wallet },
   { title: "Categories", url: "/categories", icon: Tags },
+  { title: "Hero Images", url: "/hero", icon: ImageIcon },
   { title: "Contacts", url: "/contacts", icon: MessageSquare },
 ];
 

@@ -13,10 +13,14 @@ export const apiClient = async <T>(
     const { body, headers, ...customConfig } = options;
     const token = localStorage.getItem("access_token");
 
+    const isFormData = body instanceof FormData;
     const defaultHeaders: Record<string, string> = {
-        "Content-Type": "application/json",
         "x-api-key": API_KEY,
     };
+
+    if (!isFormData) {
+        defaultHeaders["Content-Type"] = "application/json";
+    }
 
     if (token) {
         defaultHeaders["Authorization"] = `Bearer ${token}`;
@@ -31,7 +35,7 @@ export const apiClient = async <T>(
     };
 
     if (body) {
-        config.body = JSON.stringify(body);
+        config.body = isFormData ? body : JSON.stringify(body);
     }
 
     const response = await fetch(`${BASE_URL}${endpoint}`, config);
