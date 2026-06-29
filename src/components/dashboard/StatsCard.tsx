@@ -9,6 +9,7 @@ interface StatsCardProps {
   variant?: "default" | "primary" | "accent" | "success" | "warning";
   className?: string;
   onInfoClick?: () => void;
+  onClick?: () => void;
 }
 
 const variantStyles = {
@@ -35,13 +36,16 @@ export function StatsCard({
   variant = "default",
   className,
   onInfoClick,
+  onClick,
 }: StatsCardProps) {
   const isGradient = variant !== "default";
 
   return (
     <div
+      onClick={onClick}
       className={cn(
         "relative overflow-hidden rounded-xl p-4 sm:p-6 transition-all duration-300 hover-glow",
+        onClick && "cursor-pointer",
         variantStyles[variant],
         className
       )}

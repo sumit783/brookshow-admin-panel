@@ -136,6 +136,15 @@ export default function Index() {
         ) : (
           stats?.map((stat) => {
             const IconComponent = iconMap[stat.icon] || Users; // Fallback to Users
+
+            const handleCardClick = () => {
+              const title = stat.title.toLowerCase();
+              if (title.includes('artist')) navigate('/artists');
+              else if (title.includes('event')) navigate('/events');
+              else if (title.includes('booking')) navigate('/bookings');
+              else if (title.includes('revenue')) navigate('/transactions');
+            };
+
             return (
               <StatsCard
                 key={stat.title}
@@ -145,6 +154,7 @@ export default function Index() {
                 icon={IconComponent}
                 variant={stat.variant}
                 className="fade-in-scale"
+                onClick={handleCardClick}
                 onInfoClick={stat.title.toLowerCase().includes('revenue') ? () => setRevenueSplit({ total: parseRevenue(stat.value), title: stat.title }) : undefined}
               />
             );
